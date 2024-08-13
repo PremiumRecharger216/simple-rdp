@@ -49,7 +49,19 @@ jobs:
       run: |
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
         echo RDP CREATION SUCCESSFULL! 
-        tasklist | find /i ".\ngrok\ngrok.exe" >Nul && goto check || echo "Unable to get NGROK tunnel, make sure NGROK_AUTH_TOKEN is correct in Settings > Secrets > Repository secret. Maybe your previous VM is still running: https://dashboard.ngrok.com/status/tunnels" & ping 127.0.0.1 >Nul & exit
+    
+        try {
+            $processes = tasklist /fi "imagename eq ngrok.exe" | Out-String 
+            if ($processes -match "ngrok.exe") {
+                # ngrok.exe is running, proceed with the curl command
+                curl -s localhost:4040/api/tunnels | jq -r .tunnels[0].public_url 
+            } else {
+                Write-Error "ngrok.exe not found." 
+            }
+        } catch {
+            Write-Error "An error occurred while checking for ngrok.exe: $($_.Exception.Message)"
+        }
+    
         echo RDP Will be active for 6 hours and . will be printed as active indicator
         :check
         ping 127.0.0.1 > null
