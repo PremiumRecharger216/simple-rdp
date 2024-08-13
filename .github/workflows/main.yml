@@ -38,29 +38,56 @@ jobs:
         echo "Successfully installed! If RDP is dead, rebuild again."
         ping -n 10 127.0.0.1 >nul
 
+    # ... (other parts of your YAML file)
+
     - name: Tunnel and RDP Loop
       run: |
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
-        echo "RDP CREATION SUCCESSFULL!" 
-        Start-Sleep -Seconds 10
-        try {
-            $ngrokProcess = Get-Process ngrok -ErrorAction SilentlyContinue
-            $ngrokApiAccessible = Test-NetConnection -ComputerName 127.0.0.1 -Port 4040 -InformationLevel Quiet
-            if ($ngrokProcess -and $ngrokApiAccessible) {
-                $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
-                $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
-                echo "NGROK Public URL: $publicUrl"
-                echo "Username: lucifer"
-                echo "Password: JohnCena?6969"
-                echo "You can login now"
-            } else {
-                Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/cloud-edge/endpoints for more details." 
+        echo "RDP CREATION STARTED..."
+    
+        # Wait for Ngrok to initialize
+        Start-Sleep -Seconds 10 
+        echo "Waiting for Ngrok to initialize..."
+    
+        $maxRetries = 3
+        $retryDelay = 1
+    
+        for ($i = 0; $i -lt $maxRetries; $i++) {
+            try {
+                # Check if Ngrok web interface is accessible (using IPv4)
+                $ngrokApiAccessible = Test-NetConnection -ComputerName 127.0.0.1 -Port 4040 -InformationLevel Quiet
+    
+                if ($ngrokApiAccessible) {
+                    echo "Ngrok API is accessible."
+    
+                    # Fetch the Ngrok public URL
+                    $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
+                    $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
+                    echo "NGROK Public URL: $publicUrl"
+    
+                    # Display RDP credentials
+                    echo Username: lucifer
+                    echo Password: JohnCena6969
+                    echo You can login now
+    
+                    break  # Exit the loop on success
+                } else {
+                    if ($i -lt $maxRetries - 1) { 
+                        Write-Warning "Ngrok API not yet accessible. Retrying in $retryDelay seconds..."
+                        Start-Sleep -Seconds $retryDelay
+                        $retryDelay *= 2 
+                    } else {
+                        Write-Error "NGROK tunnel not found after multiple retries. Make sure NGROK_AUTH_TOKEN is correct and there are no network issues."
+                    }
+                }
+            } catch {
+                Write-Error "An error occurred while checking the NGROK tunnel: $($_.Exception.Message)"
             }
-        } catch {
-            Write-Error "An error occurred while checking the NGROK tunnel: $($_.Exception.Message)"
         }
     
+        echo "Entering RDP keep-alive loop..."
         $endTime = (Get-Date).AddHours(6)
         while ((Get-Date) -lt $endTime) {
             Start-Sleep -Seconds 1
         }
+        echo "RDP keep-alive loop completed."
