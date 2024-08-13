@@ -18,17 +18,12 @@ jobs:
 
     - name: Windows10 RDP and Initial Setup
       run: |
-        # Enable RDP and configure settings
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
-
-        # Remove shortcuts (adjust paths if necessary)
         del -Force "C:\Users\Public\Desktop\Epic Games Launcher.lnk" *> out.txt 2>&1
         del -Force "C:\Users\Public\Desktop\R 4.4.1.lnk" *> out.txt 2>&1
         del -Force "C:\Users\Public\Desktop\Unity Hub.lnk" *> out.txt 2>&1 
-
-        # Additional configuration (adjust as needed)
         net config server /srvcomment:"Windows Server 2019 By lucifer" > out.txt 2>&1
         REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /V EnableAutoTray /T REG_DWORD /D 0 /F > out.txt 2>&1
         net user lucifer JohnCena?6969 /add >nul  # Use a strong password from secrets
@@ -40,44 +35,35 @@ jobs:
         sc start audiosrv >nul
         ICACLS C:\Windows\Temp /grant lucifer:F >nul
         ICACLS C:\Windows\installer /grant lucifer:F >nul
-
-        echo Successfully installed! If RDP is dead, rebuild again.
-        ping -n 10 127.0.0.1 >nul # Brief delay for changes to take effect
+        echo "Successfully installed! If RDP is dead, rebuild again."
+        ping -n 10 127.0.0.1 >nul
 
     - name: Tunnel and RDP Loop
       run: |
-        # Start Ngrok in the background
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
-        echo RDP CREATION SUCCESSFULL! 
-
-        # Wait for Ngrok to initialize
+        echo "RDP CREATION SUCCESSFULL!" 
         Start-Sleep -Seconds 5
-
         try {
-            # Check if Ngrok is running and the API is accessible
             $ngrokProcess = Get-Process ngrok -ErrorAction SilentlyContinue
             $ngrokApiAccessible = Test-NetConnection -ComputerName localhost -Port 4040 -InformationLevel Quiet
-
+    
             if ($ngrokProcess -and $ngrokApiAccessible) {
-                # Fetch the Ngrok public URL
                 $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
                 $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
                 echo "NGROK Public URL: $publicUrl"
-
-                # Display RDP credentials (consider using secrets for password)
-                echo Username: lucifer
-                echo Password: JohnCena?6969
-                echo You can login now
+                echo "Username: lucifer"
+                echo "Password: JohnCena?6969"
+                echo "You can login now"
             } else {
                 Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
             }
         } catch {
             Write-Error "An error occurred while checking the NGROK tunnel: $($_.Exception.Message)"
         }
-
-        # Keep the RDP session active (adjust as needed)
-        echo RDP Will be active for 6 hours and . will be printed as active indicator
-        :check
-        ping 127.0.0.1 > null
-        cls
-        goto check
+    
+        # Keep the RDP session active for 6 hours (adjust as needed)
+        $endTime = (Get-Date).AddHours(6)
+        while ((Get-Date) -lt $endTime) {
+            echo "." -n
+            Start-Sleep -Seconds 1
+        }
