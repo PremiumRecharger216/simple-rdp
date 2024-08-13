@@ -4,7 +4,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 30  # Adjust timeout as needed
+    timeout-minutes: 9999
     steps:
     - name: Download Ngrok
       run: |
@@ -26,7 +26,7 @@ jobs:
         del -Force "C:\Users\Public\Desktop\Unity Hub.lnk" *> out.txt 2>&1 
         net config server /srvcomment:"Windows Server 2019 By lucifer" > out.txt 2>&1
         REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /V EnableAutoTray /T REG_DWORD /D 0 /F > out.txt 2>&1
-        net user lucifer JohnCena?6969 /add >nul  # Use a strong password from secrets
+        net user lucifer JohnCena?6969 /add >nul
         net localgroup administrators lucifer /add >nul
         net user lucifer /active:yes >nul
         net user installer /delete
@@ -55,13 +55,12 @@ jobs:
                 echo "Password: JohnCena?6969"
                 echo "You can login now"
             } else {
-                Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
+                Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/cloud-edge/endpoints for more details." 
             }
         } catch {
             Write-Error "An error occurred while checking the NGROK tunnel: $($_.Exception.Message)"
         }
     
-        # Keep the RDP session active for 6 hours (adjust as needed)
         $endTime = (Get-Date).AddHours(6)
         while ((Get-Date) -lt $endTime) {
             Start-Sleep -Seconds 1
