@@ -54,17 +54,17 @@ jobs:
         Start-Sleep -Seconds 5
     
         try {
-            # Check if ngrok.exe is running using Get-Process
-            if (Get-Process ngrok -ErrorAction SilentlyContinue) {
-                # ngrok.exe is running, proceed with the curl command
+            # Check for an established TCP connection on port 3389
+            if (Get-NetTCPConnection -State Established -LocalPort 3389) {
+                # Ngrok is likely running, proceed with the curl command
                 $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
                 $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
                 echo "NGROK Public URL: $publicUrl"
             } else {
-                Write-Error "ngrok.exe not found." 
+                Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
             }
         } catch {
-            Write-Error "Unable to get NGROK tunnel. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
+            Write-Error "An error occurred while checking the NGROK tunnel: $($_.Exception.Message)"
         }
     
         echo RDP Will be active for 6 hours and . will be printed as active indicator
