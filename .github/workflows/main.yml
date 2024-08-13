@@ -45,6 +45,8 @@ jobs:
         echo You can login now
         ping -n 10 127.0.0.1 >nul
 
+  # ... (other parts of your YAML file)
+
     - name: Tunnel and RDP Loop
       run: |
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
@@ -54,12 +56,15 @@ jobs:
         Start-Sleep -Seconds 5
     
         try {
-            # Check for an established TCP connection on port 3389
-            if (Get-NetTCPConnection -State Established -LocalPort 3389) {
+            # Check if Ngrok web interface is accessible
+            if ((Test-NetConnection -ComputerName localhost -Port 4040 -InformationLevel Quiet) -and 
+                (Get-Item ".\ngrok\ngrok.log" -ErrorAction SilentlyContinue).LastWriteTime -gt (Get-Date).AddSeconds(-10)) {
+    
                 # Ngrok is likely running, proceed with the curl command
                 $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
                 $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
                 echo "NGROK Public URL: $publicUrl"
+    
             } else {
                 Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
             }
@@ -72,3 +77,5 @@ jobs:
         ping 127.0.0.1 > null
         cls
         goto check
+    
+    # ... (rest of your YAML file)
