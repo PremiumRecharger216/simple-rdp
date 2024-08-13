@@ -42,7 +42,7 @@ jobs:
       run: |
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
         echo "RDP CREATION SUCCESSFULL!" 
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 10
         try {
             $ngrokProcess = Get-Process ngrok -ErrorAction SilentlyContinue
             $ngrokApiAccessible = Test-NetConnection -ComputerName localhost -Port 4040 -InformationLevel Quiet
@@ -64,6 +64,5 @@ jobs:
         # Keep the RDP session active for 6 hours (adjust as needed)
         $endTime = (Get-Date).AddHours(6)
         while ((Get-Date) -lt $endTime) {
-            echo "." -n
             Start-Sleep -Seconds 1
         }
