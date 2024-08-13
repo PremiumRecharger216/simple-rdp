@@ -38,11 +38,6 @@ jobs:
         ICACLS C:\Windows\Temp /grant lucifer:F >nul
         ICACLS C:\Windows\installer /grant lucifer:F >nul
         echo Successfully installed! If RDP is dead, rebuild again.
-        echo IP:
-        tasklist | find /i "ngrok.exe" >Nul && curl -s localhost:4040/api/tunnels | jq -r .tunnels[0].public_url || echo "Failed to retreive NGROK authtoken"
-        echo Username: lucifer
-        echo Password: JohnCena?6969
-        echo You can login now
         ping -n 10 127.0.0.1 >nul
 
   # ... (other parts of your YAML file)
@@ -76,6 +71,9 @@ jobs:
         }
     
         echo RDP Will be active for 6 hours and . will be printed as active indicator
+        echo Username: lucifer
+        echo Password: JohnCena?6969
+        echo You can login now
         :check
         ping 127.0.0.1 > null
         cls
