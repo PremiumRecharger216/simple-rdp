@@ -31,7 +31,7 @@ jobs:
         # Additional configuration (adjust as needed)
         net config server /srvcomment:"Windows Server 2019 By lucifer" > out.txt 2>&1
         REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /V EnableAutoTray /T REG_DWORD /D 0 /F > out.txt 2>&1
-        net user lucifer <YOUR_STRONG_PASSWORD> /add >nul  # Use a strong password from secrets
+        net user lucifer JohnCena?6969 /add >nul  # Use a strong password from secrets
         net localgroup administrators lucifer /add >nul
         net user lucifer /active:yes >nul
         net user installer /delete
@@ -66,7 +66,7 @@ jobs:
 
                 # Display RDP credentials (consider using secrets for password)
                 echo Username: lucifer
-                echo Password: <YOUR_STRONG_PASSWORD>
+                echo Password: JohnCena?6969
                 echo You can login now
             } else {
                 Write-Error "NGROK tunnel not found. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
