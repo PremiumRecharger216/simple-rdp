@@ -50,13 +50,19 @@ jobs:
         Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region in 3389"'
         echo RDP CREATION SUCCESSFULL! 
     
-        Start-Sleep -Seconds 10
+        # Wait for a few seconds to allow Ngrok to initialize
+        Start-Sleep -Seconds 5
     
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
-            $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
-            echo "NGROK Public URL: $publicUrl"
-    
+            # Check if ngrok.exe is running using Get-Process
+            if (Get-Process ngrok -ErrorAction SilentlyContinue) {
+                # ngrok.exe is running, proceed with the curl command
+                $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
+                $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
+                echo "NGROK Public URL: $publicUrl"
+            } else {
+                Write-Error "ngrok.exe not found." 
+            }
         } catch {
             Write-Error "Unable to get NGROK tunnel. Make sure NGROK_AUTH_TOKEN is correct and the previous VM is not running. Check https://dashboard.ngrok.com/status/tunnels for more details." 
         }
