@@ -16,7 +16,7 @@ jobs:
     - name: Connect Ngrok
       run: .\ngrok\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
 
-    - name: Windows10 RDP and Initial Setup
+    - name: Windows 10 RDP and Initial Setup
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
@@ -45,8 +45,7 @@ jobs:
         Start-Sleep -Seconds 10
         try {
             $ngrokProcess = Get-Process ngrok -ErrorAction SilentlyContinue
-            $ngrokApiAccessible = Test-NetConnection -ComputerName localhost -Port 4040 -InformationLevel Quiet
-    
+            $ngrokApiAccessible = Test-NetConnection -ComputerName 127.0.0.1 -Port 4040 -InformationLevel Quiet
             if ($ngrokProcess -and $ngrokApiAccessible) {
                 $response = Invoke-WebRequest -Uri "http://localhost:4040/api/tunnels" -ErrorAction Stop
                 $publicUrl = ($response | ConvertFrom-Json).tunnels[0].public_url
